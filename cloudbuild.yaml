@@ -22,7 +22,7 @@ steps:
       --format='value(response.scan)' > /workspace/scan_id.txt
    # Severity check
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: gcloud
+    entrypoint: bash  
     args:
     - -c 
     - | 
