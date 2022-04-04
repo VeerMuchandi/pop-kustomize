@@ -1,7 +1,7 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 substitutions:
-  _SEVERITY: HIGH
+  _SEVERITY: CRITICAL
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
