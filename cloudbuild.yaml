@@ -12,10 +12,14 @@ steps:
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
-  # Run Scan
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  - id: scan
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
-    args: ['artifacts', 'docker', 'images', 'scan', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}','--format="value(response.scan)" > /workspace/scan_id.txt']
+    args:
+    - -c
+    - |
+      gcloud artifacts docker images scan us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
+      --format='value(response.scan)' > /workspace/scan_id.txt
    # Severity check
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
