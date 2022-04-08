@@ -5,10 +5,12 @@ substitutions:
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
+    id: build_container
     args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
     dir: 'app'
   # Run api tests
   - name: 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
+    id: unit_test   
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
@@ -22,6 +24,7 @@ steps:
       --format='value(response.scan)' > /workspace/scan_id.txt
    # Severity check
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: severity_check
     entrypoint: bash  
     args:
     - -c 
@@ -31,6 +34,7 @@ steps:
       then echo 'Failed vulnerability check' && exit 1; else exit 0; fi
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
+    id: push
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
