@@ -14,7 +14,7 @@ steps:
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
-  - id: scan
+  - id: scan_image
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash   
     args:
@@ -34,10 +34,21 @@ steps:
       then echo 'Failed vulnerability check' && exit 1; else exit 0; fi
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    id: push
+    id: push_to_registry
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
+  # Verify vunerabilities with kritis signer
+  - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
+    id: kritis_signer
+    entrypoint: bash
+    args:
+    - -c
+    - |
+      /signer -v=10 -alsologtostderr i\
+      -image=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
+      -policy=policies/container-analysis-policy.yaml -vulnz_timeout=1m -mode=check-only 
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: release_to_clouddeploy
     entrypoint: gcloud
     args: 
       [
