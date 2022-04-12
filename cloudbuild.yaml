@@ -1,7 +1,7 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 substitutions:
-  _SEVERITY: CRITICAL
+  _SEVERITY: HIGH    
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
@@ -37,15 +37,15 @@ steps:
     id: push_to_registry
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
   # Verify vunerabilities with kritis signer
-  - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
-    id: kritis_signer
-    entrypoint: bash
-    args:
-    - -c
-    - |
-      /signer -v=10 -alsologtostderr \
-      -image=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
-      -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only 
+# - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
+#   id: kritis_signer
+#   entrypoint: bash
+#   args:
+#   - -c
+#   - |
+#     /signer -v=10 -alsologtostderr \
+#     -image=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
+#     -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only 
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: release_to_clouddeploy
