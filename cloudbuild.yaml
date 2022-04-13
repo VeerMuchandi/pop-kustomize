@@ -38,7 +38,7 @@ steps:
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     id: push_to_registry
-    args: ['push', '${IMAGE_}']
+    args: ['push', '${_IMAGE}']
   # Verify vunerabilities with kritis signer
 # - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
 #   id: kritis_signer
