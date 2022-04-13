@@ -47,7 +47,6 @@ steps:
     - -c
     - |
       /signer -v=10 -alsologtostderr \
-#     -image=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
       -image=gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA} \
       -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only 
   # Create release in Google Cloud Deploy
