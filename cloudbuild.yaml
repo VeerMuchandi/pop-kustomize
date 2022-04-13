@@ -1,10 +1,10 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 #
-# _IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats
 substitutions:
   _SEVERITY: HIGH    
-  _IMAGE: gcr.io/${PROJECT_ID}/pop-stats
+  _IMAGE: 'gcr.io/${PROJECT_ID}/pop-stats'
+# _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats'
 options:
   dynamic_substitutions: true
 steps:
