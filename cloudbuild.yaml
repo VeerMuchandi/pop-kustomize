@@ -12,7 +12,7 @@ steps:
     args: ['build', '.', '-t', '${_IMAGE}', '-f', 'Dockerfile']
     dir: 'app'
   # Run api tests
-  - name: 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
+  - name: '${_IMAGE}'
     id: unit_test   
     entrypoint: python
     args: ["api_tests.py"]
@@ -23,7 +23,7 @@ steps:
     args:
     - '-c'
     - |
-      gcloud artifacts docker images scan us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
+      gcloud artifacts docker images scan ${_IMAGE} \
       --format='value(response.scan)' > /workspace/scan_id.txt
    # Severity check
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -38,7 +38,7 @@ steps:
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     id: push_to_registry
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
+    args: ['push', '${IMAGE_}']
   # Verify vunerabilities with kritis signer
 # - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
 #   id: kritis_signer
@@ -59,6 +59,6 @@ steps:
         "--delivery-pipeline", "pop-stats-pipeline",
         "--region", "us-central1",
         "--annotations", "commitId=${REVISION_ID}",
-        "--images", "pop-stats=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}"
+        "--images", "pop-stats=${_IMAGE}"
       ]
     
