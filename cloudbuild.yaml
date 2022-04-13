@@ -9,7 +9,7 @@ steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
     id: build_container
-    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    args: ['build', '.', '-t', '${_IMAGE}', '-f', 'Dockerfile']
     dir: 'app'
   # Run api tests
   - name: 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
