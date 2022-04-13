@@ -2,7 +2,8 @@
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 substitutions:
   _SEVERITY: HIGH    
-  _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats:${COMMIT_SHA}'
+# _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats:${COMMIT_SHA}'
+  _IMAGE: 'gcr.io/${PROJECT_ID}/pop-stats/pop-stats:${COMMIT_SHA}'
 options:
     dynamic_substitutions: true
 steps:
