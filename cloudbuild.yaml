@@ -1,10 +1,6 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
 #
-substitutions:
-  _SEVERITY: HIGH    
-  _IMAGE: 'gcr.io/golden-path-345519/pop-stats'
-# _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats'
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
@@ -62,4 +58,8 @@ steps:
         "--annotations", "commitId=${REVISION_ID}",
         "--images", "pop-stats=${_IMAGE}:${COMMIT_SHA}"
       ]
+substitutions:
+  _SEVERITY: HIGH    
+  _IMAGE: 'gcr.io/golden-path-345519/pop-stats'
+# _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats'
     
