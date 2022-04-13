@@ -1,15 +1,18 @@
 # Overview: build and create a release via Google Cloud Deploy for GKE
 # NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
+#
 substitutions:
   _SEVERITY: HIGH    
+  _IMAGE: 'gcr.io/golden-path-345519/pop-stats'
+# _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats'
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
     id: build_container
-    args: ['build', '.', '-t', 'gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    args: ['build', '.', '-t', '${_IMAGE}:${COMMIT_SHA}', '-f', 'Dockerfile']
     dir: 'app'
   # Run api tests
-  - name: 'gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA}'
+  - name: '${_IMAGE}:${COMMIT_SHA}'
     id: unit_test   
     entrypoint: python
     args: ["api_tests.py"]
@@ -20,7 +23,7 @@ steps:
     args:
     - '-c'
     - |
-      gcloud artifacts docker images scan gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA} \
+      gcloud artifacts docker images scan ${_IMAGE}:${COMMIT_SHA} \
       --format='value(response.scan)' > /workspace/scan_id.txt
    # Severity check
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -35,17 +38,17 @@ steps:
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     id: push_to_registry
-#   args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
-    args: ['push', 'gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA}']
+    args: ['push', '${_IMAGE}:${COMMIT_SHA}']
   # Verify vunerabilities with kritis signer
   - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
     id: kritis_signer
+    waitFor: push
     entrypoint: bash
     args:
     - -c
     - |
       /signer -v=10 -alsologtostderr \
-      -image=gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA} \
+      -image=${_IMAGE}:${COMMIT_SHA} \
       -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only 
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -57,7 +60,6 @@ steps:
         "--delivery-pipeline", "pop-stats-pipeline",
         "--region", "us-central1",
         "--annotations", "commitId=${REVISION_ID}",
-#       "--images", "pop-stats=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}"
-        "--images", "pop-stats=gcr.io/$PROJECT_ID/pop-stats:${COMMIT_SHA}"
+        "--images", "pop-stats=${_IMAGE}:${COMMIT_SHA}"
       ]
     
