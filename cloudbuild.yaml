@@ -4,7 +4,7 @@ substitutions:
   _SEVERITY: CRITICAL
   _IMAGE: 'us-central1-docker.pkg.dev/${PROJECT_ID}/pop-stats/pop-stats:${COMMIT_SHA}'
 # _IMAGE: 'gcr.io/${PROJECT_ID}/pop-stats/pop-stats:${COMMIT_SHA}'
-  _KMS_KEY_NAME: 'projects/$PROJECT_ID/locations/global/keyRings/kritis-signer-key-ring/cryptoKeys/kritis-signer-key/cryptoKeyVersions/1'
+  _KMS_KEY_NAME: 'projects/${PROJECT_ID}/locations/global/keyRings/kritis-signer-key-ring/cryptoKeys/kritis-signer-key/cryptoKeyVersions/1'
   _KMS_DIGEST_ALG: SHA256
   _NOTE_NAME: 'projects/${PROJECT_ID}/notes/my-signer-note'
 options:
@@ -51,7 +51,7 @@ steps:
     - |
       /signer -v=10 -alsologtostderr \
       -image=${_IMAGE} \
-      -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only 
+      -policy=/container-analysis-policy.yaml -vulnz_timeout=10m -mode=check-only \
       -kms_key_name=${_KMS_KEY_NAME} \
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
