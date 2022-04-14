@@ -43,6 +43,11 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     id: push_to_registry
     args: ['push', '${_IMAGE}']
+  # Get Image Didgest
+  - name: 'gcr.io/cloud-builders/docker'
+    id: get_image_digest
+    args: ['image','inspect','${_IMAGE}',"--format '{{index .RepoDigests 0}}' > image-digest.txt" ]
+#docker image inspect gcr.io/$PROJECT_ID/binauthz-test:latest --format '{{index .RepoDigests 0}}' > image-digest.txt
 # # Verify vunerabilities with kritis signer
   - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
     entrypoint: bash
