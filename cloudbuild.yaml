@@ -21,24 +21,6 @@ steps:
     entrypoint: python
     args: ["api_tests.py"]
     dir: 'app'
-# - id: scan_image
-#   name: gcr.io/google.com/cloudsdktool/cloud-sdk
-#   entrypoint: bash   
-#   args:
-#   - '-c'
-#   - |
-#     gcloud artifacts docker images scan ${_IMAGE} \
-#     --format='value(response.scan)' > /workspace/scan_id.txt
-   # Severity check
-# - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-#   id: severity_check
-#   entrypoint: bash  
-#   args:
-#   - -c 
-#   - | 
-#     gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
-#     --format='value(vulnerability.effectiveSeverity)' | if grep -Fxq $_SEVERITY; \
-#     then echo 'Failed vulnerability check' && exit 1; else exit 0; fi
 
   # Push the container image to Artifact Registry
   - name: gcr.io/cloud-builders/docker
@@ -50,6 +32,7 @@ steps:
       docker image inspect ${_IMAGE} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
       cat image-digest.txt
     id: push
+
   # Verify vunerabilities with kritis signer
   - name: us-central1-docker.pkg.dev/golden-path-345519/pop-stats/signer:latest
     entrypoint: bash
@@ -62,7 +45,7 @@ steps:
       -kms_key_name=${_KMS_KEY_NAME} \
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
-#   waitFor: push_to_registry
+    waitFor: push
     id: vulnsign
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
