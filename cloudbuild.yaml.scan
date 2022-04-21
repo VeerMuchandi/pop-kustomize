@@ -1,0 +1,51 @@
+# Overview: build and create a release via Google Cloud Deploy for GKE
+# NOTE: currently requires SCM triggering due to dependency on the COMMIT_SHA variable
+substitutions:
+  _SEVERITY: HIGH    
+steps:
+  # Build and tag using commit sha
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build_container
+    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    dir: 'app'
+  # Run api tests
+  - name: 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}'
+    id: unit_test   
+    entrypoint: python
+    args: ["api_tests.py"]
+    dir: 'app'
+  - id: scan_image
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash   
+    args:
+    - '-c'
+    - |
+      gcloud artifacts docker images scan us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA} \
+      --format='value(response.scan)' > /workspace/scan_id.txt
+   # Severity check
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: severity_check
+    entrypoint: bash  
+    args:
+    - -c 
+    - | 
+      gcloud artifacts docker images list-vulnerabilities $(cat /workspace/scan_id.txt) \
+      --format='value(vulnerability.effectiveSeverity)' | if grep -Fxq $_SEVERITY; \
+      then echo 'Failed vulnerability check' && exit 1; else exit 0; fi
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push_to_registry
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
+  # Create release in Google Cloud Deploy
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: release_to_clouddeploy
+    entrypoint: gcloud
+    args: 
+      [
+        "deploy", "releases", "create", "rel-${SHORT_SHA}",
+        "--delivery-pipeline", "pop-stats-pipeline",
+        "--region", "us-central1",
+        "--annotations", "commitId=${REVISION_ID}",
+        "--images", "pop-stats=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}"
+      ]
+    
